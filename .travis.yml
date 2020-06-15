@@ -1,18 +1,23 @@
-sudo: false
+---
 language: go
-matrix:
-  allow_failures:
-    - go: master
+sudo: false
+go:
+  - "1.13"
+  - "1.14"
+  - tip
+jobs:
   fast_finish: true
-  include:
-    - go: 1.10.x
-    - go: 1.11.x
-      env: GOFMT=1
-    - go: master
-install:
-  - # Do nothing. This is needed to prevent default install action "go get -t -v ./..." from happening here (we want it to happen inside script step).
+  allow_failures:
+    - go: tip
+branches:
+  # don't build pull requests twice
+  only:
+    - master
+    - /^v\d+\.\d+\.\d+$/
+cache:
+  directories:
+    - $HOME/.cache/go-build
+    - $HOME/gopath/pkg/mod
 script:
-  - go get -t -v ./...
-  - if test -n "${GOFMT}"; then gofmt -w -s . && git diff --exit-code; fi
-  - go tool vet .
-  - go test -v -race ./...
+  - make coverage
+  - make vet
